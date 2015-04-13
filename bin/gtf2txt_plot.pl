@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl -w
 # Analyze a GTF file downloaded from UCSC or Ensembl, annotate all exons
 # and output genebody and exonic coordinates to a TABULAR file for ngs.plot.
 
