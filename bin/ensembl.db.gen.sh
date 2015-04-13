@@ -2,18 +2,18 @@
 TARGET_GENOME=$1
 GENOME=$2
 SPECIES=$3
-SPECIES_NAME="$(tr '[:lower:]' '[:upper:]' <<< ${SPECIES:0:1})${SPECIES:1}"
+SPECIES_NAME="$(tr '[:lower:]' '[:upper:]' <<< ${SPECIES:0:1})${SPECIES:1}" #capitalise first letter
 echo ${SPECIES_NAME}
 VERSION=$4
 ENS_PATH=$5
 PIPELINE_JSON=$6
-PIPELINE_TYPE=$( basename ${PIPELINE_JSON} .json )
+PIPELINE_TYPE=$( basename ${PIPELINE_JSON} .json ) #type of json e.g. animal
 i=$7
 DBLIST=$8
 PRO_BIN_PATH=$9
 NP_DB_PATH=${10}
 
-
+# Could Be simplified as animal and plant perform the same operation
 case ${PIPELINE_TYPE} in 
 	"animal" )
 		GFF=`echo ${ENS_PATH} | sed -e "s/\*SPECIES_NAME\*/${SPECIES_NAME}/g" \
@@ -40,22 +40,27 @@ case ${PIPELINE_TYPE} in
 	*) echo "Unknown PIPELINE_TYPE!"
 esac
 
+#Get the file and unzip
 echo -e "wget -q -O ${NP_DB_PATH}/tmp/${SPECIES_NAME}.${GENOME}.${VERSION}.gtf.gz ${GFF}"
 wget -q -O ${NP_DB_PATH}/tmp/${SPECIES_NAME}.${GENOME}.${VERSION}.gtf.gz ${GFF}
 gzip -dc < ${NP_DB_PATH}/tmp/${SPECIES_NAME}.${GENOME}.${VERSION}.gtf.gz \
 	> ${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.gtf
+
+
 echo -e "perl -I ${PRO_BIN_PATH} ${PRO_BIN_PATH}/gtf2txt_plot.pl ensembl \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.gtf \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.txt"
 perl -I ${PRO_BIN_PATH} ${PRO_BIN_PATH}/gtf2txt_plot.pl ensembl \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.gtf \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.txt
+	
 echo -e "${PRO_BIN_PATH}/filter_ensembl.py ${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.gtf \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.txt \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.biotype.txt ${TARGET_GENOME}"
 ${PRO_BIN_PATH}/filter_ensembl.py ${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.gtf  \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.txt \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.biotype.txt ${TARGET_GENOME}
+	
 echo -e "Rscript ${PRO_BIN_PATH}/genDB.R ${TARGET_GENOME} ensembl \
 	${NP_DB_PATH}/tmp/${TARGET_GENOME}.ensembl.biotype.txt"
 Rscript ${PRO_BIN_PATH}/genDB.R ${TARGET_GENOME} ensembl \
